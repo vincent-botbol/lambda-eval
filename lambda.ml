@@ -97,7 +97,7 @@ let term_to_string t =
   let rec term_to_string1 b1 b2 c t =
     match t with
       Const(s) -> s
-    | Var(n) -> (try nth c n with Failure "nth" -> failwith "term_to_string")
+    | Var(n) -> (try nth c n with Failure "nth" -> failwith "cannot retrieve")
     | App(f,x) ->
         let s = (term_to_string1 false true c f)^" "^
             (term_to_string1 true (not b1 && b2) c x) in
@@ -265,6 +265,6 @@ let _ = red_gk all "SKK"
 let _ = red 7 "(lx.xx)(lx.xx)"
 
 
-let _ = red all (lxy.yx)((lx.x) 1) (lx.x)
-let _ = red_eager all (lxy.yx)((lx.x) 1) (lx.x)
+let _ = red all "(lxy.yx)((lx.x) 1) (lx.x)"
+let _ = red_eager all "(lxy.yx)((lx.x) 1) (lx.x)"
 *)
