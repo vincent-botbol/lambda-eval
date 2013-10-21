@@ -79,42 +79,64 @@ let value_to_string = function
 (* JS *)
 
 
-
-let rec draw_tree_with_js context (xp, yp) tree = 
+let draw_tree_with_js context tree =
+  let rec loop  context (xp, yp) tree = 
+  context##fillStyle <- Js.string "#FF0000";
   let coef = 30 in
   let dec = 30 in
   let x, y = float_of_int (dec + tree.x * coef) , float_of_int (30 + tree.y * coef) in
-  context##moveTo (x, y);
-  
+  context##moveTo (x, y);  
+
   if yp > 0. then
-	  begin 
-	    context##lineTo (xp, yp); 
-	    context##stroke ();
-	  end;
-
-  context##fillText (Js.string (value_to_string tree.value), 
-		     x, y);
-  match tree.left, tree.right with
-	| Some l, Some r ->
-	  draw_tree_with_js context (x,y) l; draw_tree_with_js context (x,y) r
-	| Some t, None | None, Some t ->
-	  draw_tree_with_js context (x,y) t
-	| _ -> ()
-
-let init () =
-  let doc = Dom_html.window##document in
-  let canvas = Dom_html.createCanvas doc in
-  canvas##style##border <- Js.string "1px solid black";
-  canvas##width <- 500;
-  canvas##height <- 500;
+    begin
+      context##lineTo (xp, yp);
+      context##stroke ();
+    end;
+  let new_y = y +. 10. in  
+  context##moveTo(x, new_y);
+  let v_str = value_to_string tree.value in
+  (* String pos *)
+  let x',y' = x -. (float_of_int (String.length v_str * 2)) 
+    , new_y -. 2. in
+  context##fillText (Js.string v_str, x', y');
   
-  let body = doc##body in
-  Dom.appendChild body canvas;
-  canvas##getContext (Dom_html._2d_)
+  match tree.left, tree.right with
+  | Some l, Some r ->
+    loop context (x,new_y) l; loop context (x,new_y) r
+  | Some t, None | None, Some t ->
+    loop context (x,new_y) t
+  | _ -> () in
+  loop context (0.,0.) tree
+  
+
+(** Vars glob *)
+let doc = Dom_html.window##document
+let text_input = Js.coerce_opt (doc##getElementById (Js.string "MonQ"))
+  Dom_html.CoerceTo.input (fun _ -> assert false)
+let button = Js.coerce_opt (doc##getElementById (Js.string "MonB"))
+  Dom_html.CoerceTo.button (fun _ -> assert false)
+let canvas = Js.coerce_opt (doc##getElementById (Js.string "MonC"))
+  Dom_html.CoerceTo.canvas (fun _ -> assert false)
+
+
+let (>>) h f = f h 
 
 let display_tree_with_js tree = 
-  let context = init () in
-  draw_tree_with_js context (-1.,-1.) tree
+  let context = canvas##getContext (Dom_html._2d_) in
+  draw_tree_with_js context tree
+
+let display_term str_term =
+  term str_term >> term_to_tree_layout >> layout >> display_tree_with_js
+  
+let setup_handlers () =
+  ()
+  (* button##onclick  (fun _ -> *)
+  (*   let str = Js.to_string (text_input##value) in *)
+  (*   Js._true *)
+  (* ) *)
+
+
+let () = setup_handlers ()
 
 let () =
-  display_tree_with_js (layout (term_to_tree_layout (term "(lxy.yx)((lx.x) 1) (lx.x)")))
+  display_term "(lxy.yx)((lx.x) 1) (lx.x)"
