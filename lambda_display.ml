@@ -37,17 +37,48 @@ let value_to_string = function
   | Var_layout s -> s
   | App_layout -> "app"
   | Abstr_layout s -> "λ"^s
-    
+
+let rec max_x = function
+  | {right=Some t; _} -> max_x t
+  | t -> t.x
+
+let rec max_y = function
+  | {right=Some t1; left=Some t2; _} ->
+    max (max_y t1) (max_y t2)
+  | {right=Some t; _} | {left=Some t; _} -> max_y t
+  | t -> t.y
     
 (* JS *)
 
+(** Vars glob *)
+let doc = Dom_html.window##document
+let text_input = Js.coerce_opt (doc##getElementById (Js.string "MonQ"))
+  Dom_html.CoerceTo.input (fun _ -> assert false)
+let button = Js.coerce_opt (doc##getElementById (Js.string "MonB"))
+  Dom_html.CoerceTo.button (fun _ -> assert false)
+let canvas = Js.coerce_opt (doc##getElementById (Js.string "MonC"))
+  Dom_html.CoerceTo.canvas (fun _ -> assert false)
+let context = canvas##getContext (Dom_html._2d_)
+let select = Js.coerce_opt (doc##getElementById (Js.string "MonS"))
+  Dom_html.CoerceTo.select (fun _ -> assert false)
+
+let curr_tree = ref None
+let curr_strat = ref Lambda.red
 
 let draw_tree_with_js context tree =
+  let coef_x = ref 30. in
+  let coef_y = ref 30. in
+  let dec = ref 30. in
+  let maxX, maxY = float_of_int (max_x tree), float_of_int (max_y tree) in
+  if maxX *. !coef_x > float_of_int canvas##width -. !dec then
+    coef_x := (float_of_int canvas##width -. 2. *. !dec) /. maxX;
+  if maxY *. !coef_y > float_of_int canvas##height -. !dec then
+    coef_y := (float_of_int canvas##height -. 2. *. !dec) /. maxY;
+
   let rec loop  context (xp, yp) tree =
-  let coef = 30 in
-  let dec = 30 in
-  let x, y = float_of_int (dec + tree.x * coef) , float_of_int (30 + tree.y * coef) in
-  context##moveTo (x, y);  
+    let x, y = !dec +. float_of_int tree.x *. !coef_x , 
+      !dec +. float_of_int tree.y *. !coef_y in
+    context##moveTo (x, y);  
 
   if yp > 0. then
     begin
@@ -75,17 +106,8 @@ let draw_tree_with_js context tree =
     loop context (x,new_y) t
   | _ -> () in
   loop context (0.,0.) tree
-  
 
-(** Vars glob *)
-let doc = Dom_html.window##document
-let text_input = Js.coerce_opt (doc##getElementById (Js.string "MonQ"))
-  Dom_html.CoerceTo.input (fun _ -> assert false)
-let button = Js.coerce_opt (doc##getElementById (Js.string "MonB"))
-  Dom_html.CoerceTo.button (fun _ -> assert false)
-let canvas = Js.coerce_opt (doc##getElementById (Js.string "MonC"))
-  Dom_html.CoerceTo.canvas (fun _ -> assert false)
-let context = canvas##getContext (Dom_html._2d_)
+  
 
 
 let (>>) h f = f h 
@@ -98,10 +120,8 @@ let display_term str_term =
  
   term str_term >> term_to_tree_layout >> layout >> display_tree_with_js
   
-let curr_tree = ref None
-
 let setup_handlers () =
-  let action _ = 
+  let button_action _ = 
     context##fillStyle <- Js.string "#FFFFFF";
     context##fillRect (0., 0., 500., 500.);
     context##beginPath ();
@@ -110,7 +130,13 @@ let setup_handlers () =
     display_term str;
     Js._true
   in
-  button##onclick  <- Dom_html.handler action
+  button##onclick  <- Dom_html.handler button_action;
+  let select_action ev = 
+    let x = select##value in
+    (* match *)
+    Js._true
+  in
+  select##onchange <- Dom_html.handler select_action
 
 
 let () = setup_handlers ()
