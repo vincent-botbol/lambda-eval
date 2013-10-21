@@ -29,10 +29,10 @@ lambda_display.cmo: lambda_display.ml
 	$(OCAMLCJS) -c $<
 
 run: lambda_display.js
-	firefox test.html
+	firefox index.html
 
 clean:
-	rm -f *~ \#* *.cm[iotd]* *.js *.annot lambda
+	rm -f *~ \#* *.cm[iotd]* *.js *.annot *.byte
 
 lambda.cmo : lambda.cmi
 lambda.cmi :

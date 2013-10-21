@@ -103,7 +103,7 @@ let term_to_string t =
             (term_to_string1 true (not b1 && b2) c x) in
         if b1 then "("^s^")" else s
     | Abstr(v,a) ->
-        let s = "l"^(term_to_string2 c t) in
+        let s = "λ"^(term_to_string2 c t) in
         if b2 then "("^s^")" else s
   and term_to_string2 c t =
     match t with
@@ -233,7 +233,7 @@ let rec gross_knuth t =
   | Abstr(v,a) -> Abstr(v,gross_knuth a)
   | _ -> raise Normal
 
-exception Irreductible
+exception Irreductible of term
 
 let rec reduce x z n t =
   let rec loop acc x z n t = 
@@ -243,13 +243,14 @@ let rec reduce x z n t =
       try 
 	let acc = t::acc in
 	let u = x t in 
-	  if List.exists ((=) u) acc then
-	    raise Irreductible
-	  else
-	    loop acc x z (n - 1) u
+	if List.exists ((=) u) acc then
+	  raise (Irreductible u)
+	else
+	  loop acc x z (n - 1) u
       with 
-	| Normal -> [t]
-	| Irreductible -> List.rev (t::acc)
+	| Normal -> List.rev (t::acc)
+	| Irreductible u -> List.rev (Const("Infinite loop detected")::u::t::acc)
+
   in
     loop [] x z n t
 	    

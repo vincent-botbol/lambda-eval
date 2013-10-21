@@ -2,19 +2,25 @@
 <html>
 <head>
   <style type="text/css">
-    #MonC { border:1px solid black; display:block }
+    #MonC { border:1px solid black; display:inline }
   </style>
 </head>
 <body>
+
 <input type="text" id="MonQ"></textarea>
 <select id="MonS">
   <option value="cbn">Call-by-name</option>
   <option value="cbv">Call-by-value</option>
 </select> 
-<button id="MonB">Send</button>
+<button id="MonB">Evaluate</button>
 
-<canvas id="MonC" width="500" height="500">
-</canvas>
+<div>
+  <canvas id="MonC" width="500" height="500">
+  </canvas>
+  <div style="display:inline" id="MonP">
+  </div>
+</div>
+</span>
 
 <script src="lambda_display.js"></script>
 </body>
