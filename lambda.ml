@@ -233,10 +233,26 @@ let rec gross_knuth t =
   | Abstr(v,a) -> Abstr(v,gross_knuth a)
   | _ -> raise Normal
 
-let rec reduce x z n t =
-  if n = 0 then z else
-    try let u = x t in t::(reduce x z (n - 1) u) with Normal -> [t]
+exception Irreductible
 
+let rec reduce x z n t =
+  let rec loop acc x z n t = 
+    if n = 0 then 
+      List.rev (z@acc)
+    else
+      try 
+	let acc = t::acc in
+	let u = x t in 
+	  if List.exists ((=) u) acc then
+	    raise Irreductible
+	  else
+	    loop acc x z (n - 1) u
+      with 
+	| Normal -> [t]
+	| Irreductible -> List.rev (t::acc)
+  in
+    loop [] x z n t
+	    
 let rec normal_form x t =
   try normal_form x (x t) with Normal -> t
 

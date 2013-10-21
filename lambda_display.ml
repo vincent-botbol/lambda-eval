@@ -101,8 +101,10 @@ let display_term str_term =
 let curr_tree = ref None
 
 let setup_handlers () =
-  let action _ =     
-    context##clearRect (0., 0., 500., 500.);
+  let action _ = 
+    context##fillStyle <- Js.string "#FFFFFF";
+    context##fillRect (0., 0., 500., 500.);
+    context##beginPath ();
     let str = Js.to_string (text_input##value) in
     curr_tree := Some (term str);
     display_term str;

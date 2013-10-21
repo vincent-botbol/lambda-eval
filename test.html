@@ -1,12 +1,21 @@
 <!doctype html>
 <html>
 <head>
+  <style type="text/css">
+    #MonC { border:1px solid black; display:block }
+  </style>
 </head>
 <body>
 <input type="text" id="MonQ"></textarea>
+<select>
+  <option value="cbn">Call-by-name</option>
+  <option value="cbv">Call-by-value</option>
+</select> 
 <button id="MonB">Send</button>
-<br/>
-<canvas id="MonC" width=500 height=500 style="border:1px solid black"/>
+
+<canvas id="MonC" width="500" height="500">
+</canvas>
+
 <script src="lambda_display.js"></script>
 </body>
 </html>
