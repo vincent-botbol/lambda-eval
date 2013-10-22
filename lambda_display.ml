@@ -216,7 +216,7 @@ let setup_handlers () =
   select##onchange <- Dom_html.handler select_action
     
 let load_examples () =
-  (* examples *)
+  (* str_term, strategy, comment option *) 
   let ex_list = 
     [ ("(lx.f x) a", red, None)
     ; ("(KISS)(KISS)", red, None)

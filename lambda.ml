@@ -114,19 +114,18 @@ let term_to_string t =
 exception Prout of term
 
 let alpha t =
-  let rec occurs c t n v =
-    match t with
-      | Const(w) -> v = w
-      | Var(m) -> m > n && v = nth c m
-      | App(f,x) -> (occurs c f n v) || (occurs c x n v)
-      | Abstr(w,a) -> occurs (w::c) a (n + 1) v in
-  let rec alpha1 c t =
-    match t with
-      App(f,x) -> App(alpha1 c f,alpha1 c x)
+  (* let rec occurs c t n v = *)
+  (*   match t with *)
+  (*     | Const(w) -> v = w *)
+  (*     | Var(m) -> m < n && v = nth c m *)
+  (*     | App(f,x) -> (occurs c f n v) || (occurs c x n v) *)
+  (*     | Abstr(w,a) -> occurs (w::c) a (n + 1) v in *)
+  let rec alpha1 c = function
+      | App(f,x) -> App(alpha1 c f,alpha1 c x)
       | Abstr(v,a) -> alpha2 c a v
-      | _ -> t
+      | t -> t
   and alpha2 c t v =
-    if occurs (v::c) t 0 v then 
+    if List.mem v c then (* occurs (v::c) t 0 v then *)
       alpha2 c t (v^"'")
     else Abstr(v,alpha1 (v::c) t) 
   in
