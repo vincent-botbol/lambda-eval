@@ -62,6 +62,8 @@ let select = Js.coerce_opt (doc##getElementById (Js.string "MonS"))
   Dom_html.CoerceTo.select (fun _ -> assert false)
 let side_panel = Js.coerce_opt (doc##getElementById (Js.string "MonP"))
   Dom_html.CoerceTo.div (fun _ -> assert false)
+let examples = Js.coerce_opt (doc##getElementById (Js.string "examples"))
+  Dom_html.CoerceTo.div (fun _ -> assert false)
 
 let curr_strat = ref red
 let term_list = ref []
@@ -120,7 +122,7 @@ let display_tree_with_js tree =
   context##beginPath ();
   draw_tree_with_js context tree
 
-let display_term term = term >> term_to_tree_layout >> layout >> display_tree_with_js
+let display_term term = term >> alpha >> term_to_tree_layout >> layout >> display_tree_with_js
 let display_str_term str_term =
   term str_term >> display_term
   
@@ -138,12 +140,15 @@ let load_side_panel () =
   let prec_button = Dom_html.createInput ?_type:(Some (Js.string "submit")) doc in
   next_button##value <- Js.string "Next";
   prec_button##value <- Js.string "Prec";
+  
   Dom.appendChild side_panel prec_button;
   Dom.appendChild side_panel next_button;
   
   let select_term = Dom_html.createSelect doc in
   select_term##size <- 6;
   select_term##style##minWidth <- Js.string "250px";
+  select_term##style##marginTop <- Js.string "10px";
+  select_term##style##display <- Js.string "block";
 
   let add_option_to_select_term str = 
     let option = Dom_html.createOption doc in
@@ -151,7 +156,7 @@ let load_side_panel () =
     Dom.appendChild select_term option
   in
   Dom.appendChild side_panel select_term;
-  List.iter add_option_to_select_term (List.map term_to_string !term_list);
+  List.iter add_option_to_select_term (List.map (fun t -> term_to_string (alpha t)) !term_list);
   
   select_term##onchange <- Dom_html.handler 
     (fun _ -> 
@@ -162,48 +167,43 @@ let load_side_panel () =
   prec_button##onclick <- Dom_html.handler
     (fun _ ->
       let idx = select_term##selectedIndex in
-      if idx < 0 || idx = 0 then
-	select_term##selectedIndex <- 0
-      else
-	begin
-	  let idx' = select_term##selectedIndex - 1 in
-	  select_term##selectedIndex <- idx';
-	  display_term (List.nth !term_list idx');
-	end;
-      Js._true
+	if idx < 0 then 
+	  select_term##selectedIndex <- List.length !term_list - 2
+	else if idx = 0 then
+	  select_term##selectedIndex <- 0
+	else
+	  begin
+	    let idx' = select_term##selectedIndex - 1 in
+	      select_term##selectedIndex <- idx';
+	      display_term (List.nth !term_list idx');
+	  end;
+	Js._true
     );
   next_button##onclick <- Dom_html.handler
     (fun _ ->
-      let idx = select_term##selectedIndex in
-      if idx < 0 then
-	begin
-	  let idx' = 1 in
-	  select_term##selectedIndex <- idx';
-	  display_term (List.nth !term_list idx');
-	end
-      else if idx = List.length !term_list - 1 then 
-	select_term##selectedIndex <- List.length !term_list - 1 
-      else 
-	begin
-	  let idx' = select_term##selectedIndex + 1 in
-	  select_term##selectedIndex <- idx';
-	  display_term (List.nth !term_list idx');
-	end;
-      Js._true
+       let idx = select_term##selectedIndex in
+	 if idx < 0 || idx = List.length !term_list - 1 then 
+	   select_term##selectedIndex <- List.length !term_list - 1 
+	 else 
+	   begin
+	     let idx' = select_term##selectedIndex + 1 in
+	       select_term##selectedIndex <- idx';
+	       display_term (List.nth !term_list idx');
+	   end;
+	 Js._true
 	
     );
   ()
 
-let setup_handlers () =
-  let button_action _ = 
+let button_action _ = 
     let str = Js.to_string (text_input##value) in
-    display_str_term str;
-    
+
     term_list := !curr_strat (-1) str;
-    
+      display_term (List.nth !term_list ((List.length !term_list) - 1));
     load_side_panel ();
     Js._true
-  in
+
+let setup_handlers () =  
   button##onclick  <- Dom_html.handler button_action;
   let select_action _ = 
     let x = select##value in
@@ -215,8 +215,40 @@ let setup_handlers () =
     Js._true
   in
   select##onchange <- Dom_html.handler select_action
+    
+let load_examples () =
+  (* examples *)
+  let ex_list = 
+    [ ("(lx.f x) a", red, None)
+    ; ("(KISS)(KISS)", red, None)
+    ; ("(lx.xx)(lx.xx)", red, Some "Terme irreductible")
+    ; "(lxy.yx)((lx.x) 1) (lx.x)", red, Some "Appel par nom"
+    ; "(lxy.yx)((lx.x) 1) (lx.x)", red, Some "Appel par valeur"
+    ]
+  in
+  let add_example (str_term, red_strat, info_opt) =
+    let a = Dom_html.createA doc in
+      a##href <- Js.string "#";
+      a##onclick <- Dom_html.handler
+	(fun _ -> 
+	   text_input##value <- Js.string str_term;
+	   curr_strat := red_strat;
+	   ignore (button_action ());
+	   Js._true
+	);
+      Dom.appendChild a (doc##createTextNode (Js.string str_term));
+      Dom.appendChild examples a;      
+      (match info_opt with
+	 | Some x -> Dom.appendChild examples 
+	     (doc##createTextNode (Js.string (" - "^x)));
+	 | None -> ());
+      Dom.appendChild examples (Dom_html.createBr doc);
+  in
+    List.iter add_example ex_list
 
-
-let () = setup_handlers ()
+let () = 
+  setup_handlers ();
+  load_examples ()
+ 
 
 let () = text_input##value <- Js.string "(KISS)(KISS)"

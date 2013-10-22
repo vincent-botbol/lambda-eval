@@ -13,6 +13,9 @@ val term_to_string : term -> string
 val print_term : Format.formatter -> term -> unit
 val print_out : term -> unit
 
+(** alpha conversion *)
+val alpha : term -> term
+
 (** beta reduction *)
 val beta : (term -> term) -> term -> term
 

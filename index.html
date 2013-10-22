@@ -1,41 +1,69 @@
 <!doctype html>
 <html>
 <head>
+  <meta HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
   <style type="text/css">
-    #MonC { border:1px solid black; display:inline }
+    #MonC { border:1px solid black; display:inline; float:left }
   </style>
+  <title>Evaluateur de Lambda calcul et Visualisation</title>
 </head>
 <body>
 
-<input type="text" id="MonQ"></textarea>
-<select id="MonS">
-  <option value="cbn">Call-by-name</option>
-  <option value="cbv">Call-by-value</option>
-</select> 
-<button id="MonB">Evaluate</button>
+  <input type="text" name="terme" id="MonQ" />
+  <select id="MonS">
+    <option value="cbn">Call-by-name</option>
+    <option value="cbv">Call-by-value</option>
+  </select> 
+  <button id="MonB">Evaluate</button>
 
-<div>
-  <canvas id="MonC" width="500" height="500">
-  </canvas>
-  <div style="display:inline" id="MonP">
+  <div>
+    <div style="display:inline-block; margin:10px" id="MonP">
+    </div>
+    <canvas id="MonC" width="500" height="500">
+    </canvas>
   </div>
-</div>
-</span>
 
-<script src="lambda_display.js"></script>
+  <div style="clear:both;">
+    <h3>Annexe</h3>
+    <h5>Syntaxe des lambda-termes : </h5>
+    <pre>     
+      &lt;expr&gt;   ::=  &lt;var&gt;
+                  | &lt;func&gt; &lt;arg&gt;              # Applications.
+                  | lambda &lt;var&gt; . &lt;expr&gt;     # Abstractions. 
+      &lt;func&gt;   ::=  &lt;var&gt;
+                  | (l &lt;var&gt; . &lt;expr&gt;)    
+                  | &lt;func&gt; &lt;arg&gt;
+      &lt;arg&gt;    ::=  &lt;var&gt;
+                  | (lambda &lt;var&gt; . &lt;expr&gt;) 
+                  | (&lt;func&gt; &lt;arg&gt;) 
+      &lt;var&gt;    ::= a| b| .... | Z
+      &lt;const&gt;  ::= 0 | ... | 9 | &lt;const&gt;+
+    </pre>
+    
+    <div>
+      <h5>Combinateur prédéfinis : </h5>
+      <ul>
+	<li>I &equiv; (lx.x) - Identité</li>
+	<li>S &equiv; (lxyz.(xz)(yz)) - Substitution</li>
+	<li>B &equiv; (lxyz.x(yz)) - Composition</li>
+	<li>Y &equiv; (lf.(lx.f(xx))(lx.f(xx))) - Point fixe</li>
+	<li>K ou T &equiv; (lxy.x) - Vrai</li> 
+	<li>F &equiv; (lxy.y) - Faux</li>
+	<li>J &equiv; (labcd.ab(adc))</li>	
+	<li>C &equiv; (lxyz.xzy) </li>
+      </ul>
+    </div>
+
+    <div id="examples">
+      <h5> Exemples</h5>
+      
+    </div>
+    
+  </div>
+
+
+
+  <script src="lambda_display.js"></script>
 </body>
 </html>
 
-<!--
-textarea | button
-----------------
-|              | bprec
-|              | bnext
-|              | forme normale
-|              | 
-|              | | liste des 
-|______________| | termes    
-		 | clickables
-		 | ...
-
--->

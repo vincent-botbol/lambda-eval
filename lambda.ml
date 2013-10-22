@@ -121,12 +121,13 @@ let alpha t =
   let rec alpha1 c t =
     match t with
       App(f,x) -> App(alpha1 c f,alpha1 c x)
-    | Abstr(v,a) -> alpha2 c a v
-    | _ -> t
+      | Abstr(v,a) -> alpha2 c a v
+      | _ -> t
   and alpha2 c t v =
     if occurs (v::c) t 0 v then alpha2 c t (v^"'")
-      else Abstr(v,alpha1 (v::c) t) in
-  alpha1 [] t
+    else Abstr(v,alpha1 (v::c) t) 
+  in
+    alpha1 [] t
 
 let print_term f t =
   Format.pp_print_string f ("term \""^(term_to_string (alpha t))^"\"")
@@ -145,7 +146,7 @@ let combinators =
    "S", term "lxyz.(xz)(yz)";
    "B", term "lxyz.x(yz)";
    "C", term "lxyz.xzy";
-   "1", term "lxy.xy";
+   (* "1", term "lxy.xy"; *)
    "Y", term "lf.(lx.f(xx))(lx.f(xx))";
    "T", term "lxy.x";
    "F", term "lxy.y";
