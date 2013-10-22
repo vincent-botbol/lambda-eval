@@ -111,20 +111,23 @@ let term_to_string t =
     | _ -> "."^(term_to_string1 false false c t) in
   term_to_string1 false false [] t
 
+exception Prout of term
+
 let alpha t =
   let rec occurs c t n v =
     match t with
-      Const(w) -> v = w
-    | Var(m) -> m > n && v = nth c m
-    | App(f,x) -> (occurs c f n v) || (occurs c x n v)
-    | Abstr(w,a) -> occurs (w::c) a (n + 1) v in
+      | Const(w) -> v = w
+      | Var(m) -> m > n && v = nth c m
+      | App(f,x) -> (occurs c f n v) || (occurs c x n v)
+      | Abstr(w,a) -> occurs (w::c) a (n + 1) v in
   let rec alpha1 c t =
     match t with
       App(f,x) -> App(alpha1 c f,alpha1 c x)
       | Abstr(v,a) -> alpha2 c a v
       | _ -> t
   and alpha2 c t v =
-    if occurs (v::c) t 0 v then alpha2 c t (v^"'")
+    if occurs (v::c) t 0 v then 
+      alpha2 c t (v^"'")
     else Abstr(v,alpha1 (v::c) t) 
   in
     alpha1 [] t
@@ -286,3 +289,4 @@ let _ = red 7 "(lx.xx)(lx.xx)"
 let _ = red all "(lxy.yx)((lx.x) 1) (lx.x)"
 let _ = red_eager all "(lxy.yx)((lx.x) 1) (lx.x)"
 *)
+

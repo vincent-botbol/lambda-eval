@@ -125,7 +125,6 @@ let display_tree_with_js tree =
 let display_term term = term >> alpha >> term_to_tree_layout >> layout >> display_tree_with_js
 let display_str_term str_term =
   term str_term >> display_term
-  
 
 let clean_panel () = 
   (* marche pas bien *)
