@@ -167,7 +167,11 @@ let load_side_panel () =
     (fun _ ->
       let idx = select_term##selectedIndex in
 	if idx < 0 then 
-	  select_term##selectedIndex <- List.length !term_list - 2
+	  begin
+	    let idx' = List.length !term_list - 2 in
+	    select_term##selectedIndex <- idx';
+	    display_term (List.nth !term_list idx');
+	  end
 	else if idx = 0 then
 	  select_term##selectedIndex <- 0
 	else
@@ -249,5 +253,4 @@ let () =
   setup_handlers ();
   load_examples ()
  
-
 let () = text_input##value <- Js.string "(KISS)(KISS)"
