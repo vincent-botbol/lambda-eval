@@ -105,6 +105,34 @@ contenant la syntaxe à employer, quelques combinateurs prédéfinis
 et des exemples évaluables.
 
 
+\section{Implémentation}
+
+Il a été nécessaire de lier le modèle de l'application à l'interface
+graphique. L'affichage de l'arbre, comme décrit plus haut, se fait
+assez naturellement. Pour rendre l'interface réactive, il a également
+fallu lier les composants graphique à des fonctions associées
+(handlers). Par exemple, le handler du bouton d'évaluation sur un
+événément de clic va effectuer les actions suivantes :
+\begin{enumerate}
+\item Parser le terme,
+\item Générer la liste des réductions,
+\item Récupérer le dernier terme \footnote{On a préféré afficher en
+  priorité la forme normale (si existante) plutôt que le terme passé
+  en argument. Cela nous semblait plus judicieux.},
+\item Opérer l'algorithme d'agencement des noeuds sur l'arbre de
+  syntaxe abstraire de ce lambda-terme,
+\item Afficher dans le canvas ce dernier,
+\item Générer le paneau latéral : boutons ``next'', ``prec'' et la
+  liste des réductions de ce terme. Il faut également, à ce moment-ci,
+  sensibiliser ces derniers.
+\end{enumerate}
+Les actions des ``handlers'' étant triviales, nous ne les détaillerons
+pas ici.
+
+Une fois, la sensibilisation des composants achevées l'interface est
+prête à être utilisée.
+
+
 \chapter{Lambda-calcul}
 
 La deuxième partie de ce projet a été d'évaluer les lambda-termes rentrés par l'utilisateur. Il nous a donc fallu modéliser le lambda-calcul, reconnaître les termes rentrés de manière textuelle, et enfin les évaluer.
