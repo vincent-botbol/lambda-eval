@@ -178,7 +178,7 @@ type term =
 Une fois la grammaire et le type \textit{OCaml} établis, il nous a fallu être capable de convertir un mot de cette grammaire en un lambda-terme en accord avec le type décrit juste au-dessus. Cette étape de \textit{parsing} repose sur la manipulation des chaînes de caractères en \textit{OCaml} et surtout sur l'idée de considérer une chaîne comme une liste de caractères, afin de pouvoir facilement itérer dessus. C'est le rôle de la fonction \textit{explode}. Une fois les espaces supprimés (fonction \textit{lex}), on peut alors passer au parsing proprement dit (fonction \textit{parse}). Ainsi, on va itérer sur les caractères en respectant la logique suivante :
 \medskip
 \begin{itemize}
-\item Si le caractère est un l, on construit une abstraction qui comprend une chaîne décrivant une liste de symboles et un corps qui est un autre terme. Ces 2 éléments sont séparés par le caractère réservé ``.'', ainsi (\textit{lxyz.T}) décrit l'abstraction de paramètres \textbf{x}, \textbf{y}, et \textbf{z} et de corps \textbf{T}. De plus, il faut mettre à jour les indices de Brujn dans l'évaluation du terme T. Toujours dans cet exemple, on évalue T avec z d'indice 0, y d'indice 1, x d'indice 2, et les variables liées à des abstractions plus proches de la racine dans la branche augmentent leur indice de 3 (puisqu'il y a 3 nouvelles variables liées).
+\item Si le caractère est un l, on construit une abstraction qui comprend une chaîne décrivant une liste de symboles et un corps qui est un autre terme. Ces 2 éléments sont séparés par le caractère réservé ``.'', ainsi (\textit{lxyz.T}) décrit l'abstraction de paramètres \textbf{x}, \textbf{y}, et \textbf{z} et de corps \textbf{T}. De plus, il faut mettre à jour les indices de \textit{Bruijn} dans l'évaluation du terme T. Toujours dans cet exemple, on évalue T avec z d'indice 0, y d'indice 1, x d'indice 2, et les variables liées à des abstractions plus proches de la racine dans la branche augmentent leur indice de 3 (puisqu'il y a 3 nouvelles variables liées).
 
 \item Si le caractère est une parenthèse ouvrante, on évalue la suite comme un terme jusqu'à trouver une parenthèse fermante.
 
@@ -198,7 +198,7 @@ La règle retenue a été de renommer une variable liée si elle était sous la 
 
 \smallskip
 
-Pour mettre en place ces règles, l'idée est de parcourir le terme de la racine vers les feuilles en conservant un environnement contenant les noms de variables déjà liées dans la branche courante, ainsi il n'y a pas de doublon. Enfin, et surtout, le changement de nom d'une variable liée n'affecte en rien sa représentation (cad son indice de Brujn) car elle reste à la même place, il faut juste changer le nom du paramètre lors de la création de l'abstraction à laquelle elle est liée. Le code effectuant cette opération correspond à la fonction \textit{alpha}
+Pour mettre en place ces règles, l'idée est de parcourir le terme de la racine vers les feuilles en conservant un environnement contenant les noms de variables déjà liées dans la branche courante, ainsi il n'y a pas de doublon. Enfin, et surtout, le changement de nom d'une variable liée n'affecte en rien sa représentation (cad son indice de \textit{Bruijn}) car elle reste à la même place, il faut juste changer le nom du paramètre lors de la création de l'abstraction à laquelle elle est liée. Le code effectuant cette opération correspond à la fonction \textit{alpha}
 
 \section{Bêta-réduction}
 
@@ -210,7 +210,7 @@ A présent, il ne nous reste plus qu'à évaluer les terme du lambda-calcul. Pou
 
 \medskip
 
-La difficulté réside donc dans la substitution du paramètre formel par l'argument. Pour cela, il faut parcourir le corps du terme ainsi modifié pour identifier quelles sont les variables liées correspondant au paramètre que l'on veut substituer. Pour cela, on va encore utiliser les indices de Brujn. En effet, lorsqu'on commence à parcourir le corps de l'abstraction, on cherche les variables liées d'indice 0 pour les remplacer par l'argument. De plus, il faut encore maintenir les indices à jour. Ainsi, lorsqu'on rentre dans une nouvelle abstraction, on augmente l'indice recherché (initialement 0) de 1, mais aussi on acutalise les indices liés à des abstractions au-dessus de celle qu'on transforme. Par exemple dans \textit{lx.(lyz.yz)x}, l'occurence de x est d'indice 0, alors qu'àpres bêta-réduction, dans \textit{lx.lz.xz}, x est d'indice 1.
+La difficulté réside donc dans la substitution du paramètre formel par l'argument. Pour cela, il faut parcourir le corps du terme ainsi modifié pour identifier quelles sont les variables liées correspondant au paramètre que l'on veut substituer. Pour cela, on va encore utiliser les indices de \textit{Bruijn}. En effet, lorsqu'on commence à parcourir le corps de l'abstraction, on cherche les variables liées d'indice 0 pour les remplacer par l'argument. De plus, il faut encore maintenir les indices à jour. Ainsi, lorsqu'on rentre dans une nouvelle abstraction, on augmente l'indice recherché (initialement 0) de 1, mais aussi on acutalise les indices liés à des abstractions au-dessus de celle qu'on transforme. Par exemple dans \textit{lx.(lyz.yz)x}, l'occurence de x est d'indice 0, alors qu'àpres bêta-réduction, dans \textit{lx.lz.xz}, x est d'indice 1.
 
 \medskip
 

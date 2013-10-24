@@ -20,21 +20,23 @@ let rec index s l =
 (* ------------------------------------------------------------------------- *)
 
 type term =
-  Const of string
-| App of term * term
-| Abstr of string * term
-| Var of int
+| Const of string         (* Constants and free variables *)
+| App of term * term      (* Applications *)  
+| Abstr of string * term  (* Abstractions *)
+| Var of int              (* Bound variables *)
 
 (* ------------------------------------------------------------------------- *)
 (* Reading lambda terms.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
+(* builds a string list (a string for each char) from a string *)
 let explode s =
   let rec explode1 n =
     try let s1 = String.make 1 s.[n] in s1::(explode1 (n + 1))
     with Invalid_argument _ -> [] in
   explode1 0
 
+(* builds the concatenated string from a string list *)
 let implode l = fold_right (^) l ""
 
 let lex l =
@@ -52,18 +54,21 @@ let lex l =
   lex1 l
 
 let parse l =
+(* applications *)
   let rec apps l =
     match l with
       [] -> failwith "parse"
     | [t] -> t
-    | t::u::v -> apps (App(t,u)::v) in
+    | t::u::v -> apps (App(t,u)::v) in  
+  (* c : string list <=> bound variables;
+     l : string list <=> string to parse *)
   let rec parse1 c l =
     let t,k = parse2 c l in (apps t),k
   and parse2 c l =
     match l with
       [] -> [],[]
     | "l"::k -> let t,j = parse3 c k in [t],j
-    | "."::_ -> failwith "parse"
+    | "."::_ -> failwith "parse" (* we shall be in parse3 *)
     | "("::k ->
        (let t,j = parse1 c k in
           match j with
@@ -75,16 +80,21 @@ let parse l =
        (let t = try Var(index s c) with Not_found -> Const(s) in
         let u,j = parse2 c k in
           (t::u),j)
+(* abstractions *)
   and parse3 c l =
     match l with
       [] -> failwith "parse"
     | "."::k -> parse1 c k
     | s::k ->
-        if mem s ["l"; "("; ")"] then failwith "parse" else
-          let t,j = parse3 (s::c) k in
-            Abstr(s,t),j in
+      if mem s ["l"; "("; ")"] then
+	failwith "parse"
+      else
+	(* As we are declaring a new bound variable, we add it in the env *)
+        let t,j = parse3 (s::c) k in
+        Abstr(s,t),j
+  in
   let t,k = parse1 [] l in
-    if k = [] then t else failwith "parse"
+  if k = [] then t else failwith "parse"
 
 let term = parse ** lex ** explode
 
@@ -94,6 +104,7 @@ let term = parse ** lex ** explode
 (* ------------------------------------------------------------------------- *)
 
 let term_to_string t =
+  (* c : string list <=> bound variables *)
   let rec term_to_string1 b1 b2 c t =
     match t with
       Const(s) -> s
@@ -107,11 +118,10 @@ let term_to_string t =
         if b2 then "("^s^")" else s
   and term_to_string2 c t =
     match t with
+      (* we add the bound variable v in env c *)
       Abstr(v,a) -> v^(term_to_string2 (v::c) a)
     | _ -> "."^(term_to_string1 false false c t) in
   term_to_string1 false false [] t
-
-exception Prout of term
 
 let alpha t =
   (* let rec occurs c t n v = *)
@@ -164,6 +174,10 @@ let unfold f =
 (* Reduction.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
+(* int -> int -> term -> term *)
+(* au début n vaut 0 car lié à la dernière abstraction
+   à chaque nouvelle, il augmente de 1
+   si une variable est liée à une abstraction plus ancienne que celle que l'on est en train d'appliquer, on*)
 let rec lift d n t =
   match t with
     Var(m) -> if m >= n then Var(m + d) else Var(m)
@@ -171,8 +185,11 @@ let rec lift d n t =
   | Abstr(v,a) -> Abstr(v,lift d (n + 1) a)
   | _ -> t
 
+(* t nouveau terme, u argument de l'application *)
 let rec subst n u t =
   match t with
+    (* si c'est la var qu'on doit remplacer, on met à jour les indices dans le nouveau terme
+       si elle est liée à une abstraction plus ancienne que celle qu'on applique, son indice diminue de 1 (une abstraction en moins) *)
     Var(m) -> if m = n then lift n 0 u else if m > n then Var(m - 1) else t
   | App(f,x) -> App(subst n u f,subst n u x)
   | Abstr(v,a) -> Abstr(v,subst (n + 1) u a)
@@ -190,50 +207,26 @@ let beta i t =
       | _ -> raise Normal)
   | _ -> raise Normal
 
-let rec leftmost_innermost t =
+let rec call_by_name t =
   match t with
     App(f,x) ->
-     (try App(leftmost_innermost f,x)
+     (try beta id t
       with Normal ->
-        try App(f,leftmost_innermost x)
+        try App(call_by_name f,x)
+        with Normal ->
+          App(f,call_by_name x))
+  | Abstr(v,a) -> Abstr(v,call_by_name a)
+  | _ -> raise Normal
+
+let rec call_by_value t =
+  match t with
+    App(f,x) ->
+     (try App(call_by_value f,x)
+      with Normal ->
+        try App(f,call_by_value x)
         with Normal ->
           beta id t)
-  | Abstr(v,a) -> Abstr(v,leftmost_innermost a)
-  | _ -> raise Normal
-
-let rec leftmost_outermost t =
-  match t with
-    App(f,x) ->
-     (try beta id t
-      with Normal ->
-        try App(leftmost_outermost f,x)
-        with Normal ->
-          App(f,leftmost_outermost x))
-  | Abstr(v,a) -> Abstr(v,leftmost_outermost a)
-  | _ -> raise Normal
-
-let rec parallel_outermost t =
-  match t with
-    App(f,x) ->
-     (try beta id t
-      with Normal ->
-        try let g = parallel_outermost f in
-          App(g,maybe parallel_outermost x)
-        with Normal ->
-          App(f,parallel_outermost x))
-  | Abstr(v,a) -> Abstr(v,parallel_outermost a)
-  | _ -> raise Normal
-
-let rec gross_knuth t =
-  match t with
-    App(f,x) ->
-     (try beta gross_knuth t
-      with Normal ->
-        try let g = gross_knuth f in
-          App(g,maybe gross_knuth x)
-        with Normal ->
-          App(f,gross_knuth x))
-  | Abstr(v,a) -> Abstr(v,gross_knuth a)
+  | Abstr(v,a) -> Abstr(v,call_by_value a)
   | _ -> raise Normal
 
 exception Irreductible of term
@@ -267,25 +260,6 @@ let rec normal_form x t =
 let etc = [Const("...")]
 let all = -1
 
-let nf = normal_form leftmost_outermost ** term
-
-let red n = reduce leftmost_outermost etc n ** term
-let red_eager n = reduce leftmost_innermost etc n ** term
-let red_par n = reduce parallel_outermost etc n ** term
-let red_gk n = reduce gross_knuth etc n ** term
-
-(*
-(* ------------------------------------------------------------------------- *)
-(* Examples.                                                                 *)
-(* ------------------------------------------------------------------------- *)
-
-let _ = nf "(lx.fx)a"
-let _ = nf "(KISS)(KISS)"
-let _ = red_gk all "SKK"
-let _ = red 7 "(lx.xx)(lx.xx)"
-
-
-let _ = red all "(lxy.yx)((lx.x) 1) (lx.x)"
-let _ = red_eager all "(lxy.yx)((lx.x) 1) (lx.x)"
-*)
+let red n = reduce call_by_name etc n ** term
+let red_eager n = reduce call_by_value etc n ** term
 
