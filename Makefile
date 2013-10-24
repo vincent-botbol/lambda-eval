@@ -1,6 +1,6 @@
-OCAMLC=ocamlc $(DEBUG)
+OCAMLC=ocamlc #$(DEBUG)
 DEBUG=-annot
-JSC=js_of_ocaml $(JSDEBUG)
+JSC=js_of_ocaml #$(JSDEBUG)
 JSDEBUG=-pretty -noinline
 OCAMLCJS=ocamlfind $(OCAMLC) -syntax camlp4o -package "js_of_ocaml,js_of_ocaml.syntax"
 
@@ -32,7 +32,9 @@ run: lambda_display.js
 	firefox index.html
 
 clean:
-	rm -f *~ \#* *.cm[iotd]* *.js *.annot *.byte
+	rm -f *~ \#* *.cm[iotd]* *.annot *.byte
+very-clean: clean
+	rm -f $(TARGET)
 
 lambda.cmo : lambda.cmi
 lambda.cmi :
