@@ -239,7 +239,7 @@ let rec reduce x z n t =
       try 
 	let acc = t::acc in
 	let u = x t in 
-	if List.exists ((=) u) acc then
+	if List.mem u acc then
 	  raise (Irreductible u)
 	else
 	  loop acc x z (n - 1) u

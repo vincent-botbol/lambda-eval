@@ -232,8 +232,7 @@ let load_examples () =
   let add_example (str_term, red_strat, info_opt) =
     let a = Dom_html.createA doc in
       a##href <- Js.string "#";
-      a##onclick <- Dom_html.handler
-	(fun _ -> 
+      a##onclick <- Dom_html.handler (fun _ -> 
 	   text_input##value <- Js.string str_term;
 	   curr_strat := red_strat;
 	   ignore (button_action ());
