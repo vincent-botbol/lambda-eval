@@ -226,7 +226,7 @@ let load_examples () =
     ; ("(KISS)(KISS)", red, None)
     ; ("(lx.xx)(lx.xx)", red, Some "Terme irreductible")
     ; "(lxy.yx)((lx.x) 1) (lx.x)", red, Some "Appel par nom"
-    ; "(lxy.yx)((lx.x) 1) (lx.x)", red, Some "Appel par valeur"
+    ; "(lxy.yx)((lx.x) 1) (lx.x)", red_eager, Some "Appel par valeur"
     ]
   in
   let add_example (str_term, red_strat, info_opt) =
