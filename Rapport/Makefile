@@ -1,6 +1,6 @@
 TARGET=presentation
 
-all: $(TARGET).pdf clean
+all: $(TARGET).pdf
 
 $(TARGET).pdf: $(TARGET).tex
 	pdflatex $<
