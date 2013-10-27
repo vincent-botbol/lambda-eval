@@ -135,10 +135,10 @@ let clean_panel () =
 
 let load_side_panel () =
   clean_panel (); clean_panel (); (* :l *)
-  let next_button = Dom_html.createInput ?_type:(Some (Js.string "submit")) doc in
   let prec_button = Dom_html.createInput ?_type:(Some (Js.string "submit")) doc in
+  let next_button = Dom_html.createInput ?_type:(Some (Js.string "submit")) doc in
+  prec_button##value <- Js.string "Prev";
   next_button##value <- Js.string "Next";
-  prec_button##value <- Js.string "Prec";
   
   Dom.appendChild side_panel prec_button;
   Dom.appendChild side_panel next_button;
