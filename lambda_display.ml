@@ -146,6 +146,7 @@ let load_side_panel () =
   let select_term = Dom_html.createSelect doc in
   select_term##size <- 6;
   select_term##style##minWidth <- Js.string "250px";
+  select_term##style##maxWidth <- Js.string "600px";
   select_term##style##marginTop <- Js.string "10px";
   select_term##style##display <- Js.string "block";
 
@@ -201,7 +202,7 @@ let load_side_panel () =
 let button_action _ = 
     let str = Js.to_string (text_input##value) in
 
-    term_list := !curr_strat (-1) str;
+    term_list := !curr_strat (30) str;
       display_term (List.nth !term_list ((List.length !term_list) - 1));
     load_side_panel ();
     Js._true
